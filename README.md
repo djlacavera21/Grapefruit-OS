@@ -17,12 +17,14 @@ Architecture decision: **[docs/adr/0001-linux-kernel-foundation.md](docs/adr/000
 ## Current Status
 
 - [x] Kernel feature philosophy and recommended config fragment
-- [x] Concrete live-build package lists
-- [x] Default sysctl hardening + seccomp/Landlock guidance
-- [x] Expanded, usable `scripts/build-iso.sh`
-- [x] Initial roadmap and first Architecture Decision Record
+- [x] Concrete live-build package lists + hooks
+- [x] Default sysctl hardening
+- [x] Concrete seccomp profiles (`agent-base`, `untrusted-code`) + Landlock guidance
+- [x] Calamares settings and branding scaffold
+- [x] Expanded, usable `scripts/build-iso.sh` that injects all of the above
+- [x] Roadmap and first Architecture Decision Record
 - [ ] First published bootable hybrid ISO
-- [ ] Full graphical or minimal installer experience
+- [ ] Complete installer experience
 
 See **[docs/roadmap.md](docs/roadmap.md)** for the full phased plan.
 
@@ -35,13 +37,7 @@ cd Grapefruit-OS
 ./scripts/build-iso.sh --auto   # attempts a full live-build (requires root + dependencies)
 ```
 
-The script:
-
-- Checks for `live-build` and related tools
-- Creates a build directory and runs `lb config`
-- Injects the Grapefruit package lists and sysctl policy
-- Copies kernel fragment and isolation documentation into the image
-- Can run `lb build` when invoked with `--auto`
+The script checks dependencies, creates a live-build tree, injects package lists, hooks, sysctl policy, seccomp profiles, Landlock docs, kernel fragment, and Calamares branding, then can run `lb build`.
 
 Details: **[docs/iso-build.md](docs/iso-build.md)**
 
@@ -49,9 +45,7 @@ Details: **[docs/iso-build.md](docs/iso-build.md)**
 
 1. Download the ISO from Releases and verify the SHA256 checksum.
 2. Write it to USB (`dd`, Rufus, balenaEtcher, etc.).
-3. Boot and install.
-
-A future one-command installer (`scripts/install.sh`) is planned; the Live ISO remains the preferred path.
+3. Boot and install (Calamares branding is already scaffolded).
 
 ## Repository Layout
 
@@ -62,18 +56,20 @@ Grapefruit-OS/
 │   ├── kernel-features.md
 │   ├── iso-build.md
 │   ├── roadmap.md
-│   └── adr/
-│       └── 0001-linux-kernel-foundation.md
+│   └── adr/0001-linux-kernel-foundation.md
 ├── configs/
 │   ├── grapefruit-kernel.fragment
 │   ├── sysctl.d/99-grapefruit.conf
-│   ├── seccomp/README.md
+│   ├── seccomp/
+│   │   ├── README.md
+│   │   ├── agent-base.json
+│   │   └── untrusted-code.json
 │   └── landlock/README.md
 ├── iso/
 │   └── config/
-│       └── package-lists/
-│           ├── grapefruit.list.chroot
-│           └── desktop.list.chroot
+│       ├── package-lists/
+│       ├── hooks/live/
+│       └── includes.chroot/etc/calamares/...
 └── scripts/
     ├── build-iso.sh
     └── install.sh
@@ -81,9 +77,11 @@ Grapefruit-OS/
 
 ## Kernel & Policy Highlights
 
-- **Kernel fragment** enables cgroups v2, all major namespaces, seccomp, Landlock, io_uring, eBPF, IOMMU, and modern scheduler options.
-- **sysctl** policy hardens common attack surfaces and sets sensible modern defaults.
-- **seccomp** and **Landlock** guidance is included so services and agents can be tightly sandboxed.
+- **Kernel fragment** enables cgroups v2, namespaces, seccomp, Landlock, io_uring, eBPF, IOMMU, and modern scheduler options.
+- **sysctl** policy hardens common attack surfaces.
+- **seccomp** profiles provide ready-to-use baselines for agents and untrusted code.
+- **Landlock** guidance supports unprivileged path-based sandboxing.
+- **Calamares** branding and settings are pre-seeded for a future graphical installer.
 
 ## Long-Term Direction
 
