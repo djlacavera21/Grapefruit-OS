@@ -6,45 +6,50 @@ This roadmap reflects the current pragmatic direction: a hardened, isolation-fir
 
 - [x] Repository structure and core documentation
 - [x] Kernel feature philosophy and recommended config fragment
-- [x] ISO build design and scaffolding
-- [x] Initial package lists and live-build configuration layout
-- [x] Default sysctl, seccomp, and Landlock policy sketches
+- [x] ISO build design and concrete automation script
+- [x] Real package lists (core + optional desktop)
+- [x] Default sysctl hardening
+- [x] Seccomp guidance + concrete profiles (`agent-base.json`, `untrusted-code.json`)
+- [x] Landlock guidance
+- [x] Live-build hook for defaults and branding messages
+- [x] Calamares settings + branding descriptor scaffold
 - [x] Architecture Decision Record for the Linux foundation choice
-- [ ] First bootable hybrid ISO (manual or semi-automated build)
-- [ ] Basic branding and live session defaults
+- [x] Initial roadmap
+- [ ] First bootable hybrid ISO (manual or semi-automated build on a real host)
+- [ ] Polished live session experience
 
 ## Phase 1 — Usable Live System & Installer (Next)
 
-- Fully automated `scripts/build-iso.sh` that produces a signed, checksummed hybrid ISO
-- Working live environment with the Grapefruit kernel configuration active
-- Calamares or a simple text/graphical installer that preserves isolation defaults
-- One-command `install.sh` for existing Linux systems (or clear documentation why ISO is preferred)
-- Baseline desktop or minimal window-manager option (still undecided — sway/labwc vs full DE)
-- Persistent package repository or clear instructions for updates
+- Fully tested `scripts/build-iso.sh --auto` producing a signed, checksummed hybrid ISO
+- Working live environment with the Grapefruit kernel configuration and policies active
+- Calamares (or alternative) installer that preserves isolation defaults and branding
+- One-command `install.sh` refinements or clear documentation of preferred paths
+- Decision on default session (minimal Wayland compositor vs fuller desktop)
+- Persistent update story (repository or image-based)
 
 ## Phase 2 — Hardening & Isolation Polish
 
-- Refined Landlock + seccomp profiles for common workloads
-- Default cgroup v2 hierarchy and resource policies for multi-tenant / multi-agent use
-- AppArmor or SELinux profiles (optional, documented)
+- Expanded and tested Landlock + seccomp profiles for common workloads
+- Default cgroup v2 hierarchy and resource policies useful for multi-agent systems
+- Optional AppArmor/SELinux profiles with clear documentation
 - Secure boot / measured boot exploration
-- First-class support for rootless containers and sandboxed agents
-- Documentation and examples for running high-isolation workloads
+- First-class examples for rootless containers and sandboxed agents
+- Documentation and recipes for high-isolation workloads
 
 ## Phase 3 — Developer & Power-User Experience
 
 - Clean development container / toolbox story
 - Easy custom kernel building using the Grapefruit fragment
-- Observability defaults (eBPF-friendly, good tracing story)
+- Observability defaults (eBPF-friendly tooling)
 - Optional real-time or low-latency configuration variants
-- Reproducible builds and supply-chain considerations
+- Reproducible builds and basic supply-chain considerations
 
 ## Phase 4 — Strategic Options (Longer Term)
 
-- Evaluate whether critical services should move toward a smaller microkernel or hybrid core while keeping the same userland isolation interfaces
+- Evaluate moving selected services toward a smaller microkernel or hybrid core while keeping the same userland isolation interfaces
 - Confidential computing (TDX/SEV) enablement where hardware allows
 - Specialized “appliance” images (kiosk, agent-runtime, etc.)
-- Formal methods or stronger assurance on selected components if the project grows in that direction
+- Stronger assurance or formal methods on selected components if the project grows in that direction
 
 ## Guiding Principles for All Phases
 
