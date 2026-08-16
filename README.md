@@ -6,60 +6,52 @@ Grapefruit OS currently follows a pragmatic foundation: a carefully configured a
 
 ## Design Priorities (Kernel Level)
 
-The kernel (and therefore the ISO and installed system) is shaped by these goals:
-
 1. **Strong, cheap isolation** — namespaces, cgroups v2, seccomp, Landlock
 2. **Predictable performance** under mixed and multi-agent workloads
 3. **A manageable trusted computing base** even while using Linux
 4. **Clean hardware enablement** and modern I/O (io_uring, eBPF, IOMMU)
 
-Full discussion: **[docs/kernel-features.md](docs/kernel-features.md)**
+Full discussion: **[docs/kernel-features.md](docs/kernel-features.md)**  
+Architecture decision: **[docs/adr/0001-linux-kernel-foundation.md](docs/adr/0001-linux-kernel-foundation.md)**
 
 ## Current Status
 
-- Repository scaffolding and documentation are in place
-- Recommended kernel configuration fragment exists (`configs/grapefruit-kernel.fragment`)
-- ISO build process is documented and scripted at the conceptual level
-- Live ISO and full installer are the next major implementation targets
+- [x] Kernel feature philosophy and recommended config fragment
+- [x] Concrete live-build package lists
+- [x] Default sysctl hardening + seccomp/Landlock guidance
+- [x] Expanded, usable `scripts/build-iso.sh`
+- [x] Initial roadmap and first Architecture Decision Record
+- [ ] First published bootable hybrid ISO
+- [ ] Full graphical or minimal installer experience
 
-## Installation
+See **[docs/roadmap.md](docs/roadmap.md)** for the full phased plan.
 
-### Method 1: Live ISO (Recommended)
-
-Once releases are published:
-
-1. Download the latest Grapefruit OS ISO from the [Releases](https://github.com/djlacavera21/Grapefruit-OS/releases) page.
-2. Verify the SHA256 checksum.
-3. Write to USB (`dd`, Rufus, balenaEtcher, etc.).
-4. Boot and choose **Install Grapefruit OS**.
-
-The ISO is built so that the live environment already runs the same isolation-oriented kernel configuration that the installed system will use. See **[docs/iso-build.md](docs/iso-build.md)** for how the image is produced.
-
-### Method 2: One-Command Script (Future)
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/djlacavera21/Grapefruit-OS/main/scripts/install.sh | bash
-```
-
-Currently a scaffold; the real installer will land alongside the first ISO.
-
-### Method 3: Docker / Development Container
+## Building the ISO
 
 ```bash
 git clone https://github.com/djlacavera21/Grapefruit-OS.git
 cd Grapefruit-OS
-# docker compose support coming
+./scripts/build-iso.sh          # prepares configuration, shows next steps
+./scripts/build-iso.sh --auto   # attempts a full live-build (requires root + dependencies)
 ```
 
-### Method 4: Build from Source / Custom ISO
+The script:
 
-```bash
-git clone https://github.com/djlacavera21/Grapefruit-OS.git
-cd Grapefruit-OS
-./scripts/build-iso.sh          # currently documents the process
-```
+- Checks for `live-build` and related tools
+- Creates a build directory and runs `lb config`
+- Injects the Grapefruit package lists and sysctl policy
+- Copies kernel fragment and isolation documentation into the image
+- Can run `lb build` when invoked with `--auto`
 
-Detailed instructions: **[docs/iso-build.md](docs/iso-build.md)**
+Details: **[docs/iso-build.md](docs/iso-build.md)**
+
+## Installation (once an ISO exists)
+
+1. Download the ISO from Releases and verify the SHA256 checksum.
+2. Write it to USB (`dd`, Rufus, balenaEtcher, etc.).
+3. Boot and install.
+
+A future one-command installer (`scripts/install.sh`) is planned; the Live ISO remains the preferred path.
 
 ## Repository Layout
 
@@ -67,38 +59,45 @@ Detailed instructions: **[docs/iso-build.md](docs/iso-build.md)**
 Grapefruit-OS/
 ├── README.md
 ├── docs/
-│   ├── kernel-features.md     # Full kernel design discussion
-│   └── iso-build.md           # How the bootable ISO is produced
+│   ├── kernel-features.md
+│   ├── iso-build.md
+│   ├── roadmap.md
+│   └── adr/
+│       └── 0001-linux-kernel-foundation.md
 ├── configs/
-│   └── grapefruit-kernel.fragment   # Recommended Linux kernel options
+│   ├── grapefruit-kernel.fragment
+│   ├── sysctl.d/99-grapefruit.conf
+│   ├── seccomp/README.md
+│   └── landlock/README.md
+├── iso/
+│   └── config/
+│       └── package-lists/
+│           ├── grapefruit.list.chroot
+│           └── desktop.list.chroot
 └── scripts/
-    ├── build-iso.sh           # ISO build wrapper (scaffold)
-    └── install.sh             # One-command installer (scaffold)
+    ├── build-iso.sh
+    └── install.sh
 ```
 
-## Kernel Configuration Highlights
+## Kernel & Policy Highlights
 
-The fragment in `configs/grapefruit-kernel.fragment` turns on (among other things):
-
-- Full **cgroups v2** + controllers
-- All major **namespaces**
-- **seccomp** + **Landlock**
-- **io_uring**
-- **eBPF** + BTF
-- **IOMMU** support
-- Modern scheduler and NUMA options
-
-These choices directly implement the priorities listed above.
+- **Kernel fragment** enables cgroups v2, all major namespaces, seccomp, Landlock, io_uring, eBPF, IOMMU, and modern scheduler options.
+- **sysctl** policy hardens common attack surfaces and sets sensible modern defaults.
+- **seccomp** and **Landlock** guidance is included so services and agents can be tightly sandboxed.
 
 ## Long-Term Direction
 
 Short term we ship a solid, hardened Linux-based system.  
-Long term the same isolation primitives (namespaces, cgroups, careful capability use, modern IPC) give us a clean migration path if we ever move critical components onto a smaller microkernel or hybrid core. That decision is deliberately left open.
+Long term the same isolation primitives give us a clean migration path if we ever move critical components onto a smaller microkernel or hybrid core. That option is deliberately kept open (see the ADR).
 
-## Documentation
+## Documentation Index
 
-- [Kernel Features](docs/kernel-features.md) — the design rationale
-- [ISO Build Process](docs/iso-build.md) — turning the design into a bootable image
+| Document | Purpose |
+|----------|---------|
+| [Kernel Features](docs/kernel-features.md) | Design rationale for the kernel |
+| [ADR 0001](docs/adr/0001-linux-kernel-foundation.md) | Why we start with Linux |
+| [ISO Build](docs/iso-build.md) | How the bootable image is produced |
+| [Roadmap](docs/roadmap.md) | Phased plan |
 
 ## License
 
@@ -106,4 +105,4 @@ To be determined.
 
 ---
 
-*Grapefruit OS exists to turn deliberate kernel-level decisions about isolation, performance, and sovereignty into a concrete, usable system.*
+*Grapefruit OS turns deliberate decisions about isolation, performance, and sovereignty into a concrete, bootable system.*
