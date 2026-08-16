@@ -1,44 +1,160 @@
 #!/usr/bin/env bash
-# Grapefruit OS — ISO build wrapper (scaffolding)
+# Grapefruit OS — ISO build script
 #
-# This script documents and will eventually automate the production of a
-# Grapefruit OS live ISO that ships a Linux kernel configured for the
-# isolation, scheduling, I/O, and security features described in
-# docs/kernel-features.md.
+# Produces (or prepares the configuration for) a hybrid BIOS/UEFI live ISO
+# that ships a Linux kernel aligned with docs/kernel-features.md and
+# configs/grapefruit-kernel.fragment.
 #
-# Current status: scaffolding + clear next steps.
-# Real automation will land once package lists and the kernel config
-# fragment are finalized.
+# Usage:
+#   ./scripts/build-iso.sh              # prepare + show next commands
+#   ./scripts/build-iso.sh --auto       # attempt a full live-build run
+#   ./scripts/build-iso.sh --clean      # remove previous build artifacts
+#
+# This script is intended to be run on an Ubuntu 24.04/25.04 or Debian
+# host with live-build installed. It is deliberately explicit so that
+# each step can be inspected or run manually.
 
 set -euo pipefail
 
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BUILD_DIR="${BUILD_DIR:-$HOME/grapefruit-iso-build}"
+AUTO=0
+CLEAN=0
+
+for arg in "$@"; do
+  case "$arg" in
+    --auto)  AUTO=1 ;;
+    --clean) CLEAN=1 ;;
+    -h|--help)
+      echo "Usage: $0 [--auto] [--clean]"
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $arg" >&2
+      exit 1
+      ;;
+  esac
+done
+
 echo "Grapefruit OS ISO Builder"
 echo "========================="
+echo "Repository : $REPO_ROOT"
+echo "Build dir  : $BUILD_DIR"
 echo
-echo "This is currently a high-level scaffold."
-echo "See docs/iso-build.md for the full process."
+
+if [[ "$CLEAN" -eq 1 ]]; then
+  echo "Cleaning previous build directory..."
+  rm -rf "$BUILD_DIR"
+  echo "Done."
+  exit 0
+fi
+
+# ------------------------------------------------------------
+# 1. Dependency check
+# ------------------------------------------------------------
+echo "==> Checking build host dependencies"
+
+REQUIRED=(lb debootstrap squashfs-tools xorriso)
+MISSING=()
+for cmd in "${REQUIRED[@]}"; do
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    MISSING+=("$cmd")
+  fi
+done
+
+if [[ ${#MISSING[@]} -gt 0 ]]; then
+  echo "Missing required tools: ${MISSING[*]}"
+  echo "On Ubuntu/Debian install with:"
+  echo "  sudo apt update"
+  echo "  sudo apt install live-build debootstrap squashfs-tools xorriso isolinux grub-efi-amd64-bin"
+  if [[ "$AUTO" -eq 1 ]]; then
+    exit 1
+  fi
+else
+  echo "All basic tools present."
+fi
+
+# ------------------------------------------------------------
+# 2. Prepare build directory
+# ------------------------------------------------------------
 echo
-echo "Planned responsibilities of this script:"
-echo "  1. Verify build host dependencies (live-build, debootstrap, etc.)"
-echo "  2. Prepare a clean live-build configuration directory"
-echo "  3. Inject Grapefruit package lists, hooks, and includes"
-echo "  4. Apply the curated kernel configuration fragment"
-echo "  5. Run 'lb build' (or Cubic / alternative backend)"
-echo "  6. Produce a hybrid BIOS/UEFI ISO + checksums"
+echo "==> Preparing live-build directory at $BUILD_DIR"
+mkdir -p "$BUILD_DIR"
+cd "$BUILD_DIR"
+
+if [[ ! -d config ]]; then
+  echo "Running initial 'lb config'..."
+  lb config \
+    -d noble \
+    --architectures amd64 \
+    --binary-images iso-hybrid \
+    --bootappend-live "boot=live components quiet splash" \
+    --debian-installer none \
+    --archive-areas "main restricted universe multiverse" \
+    --apt-indices false \
+    --memtest none
+fi
+
+# ------------------------------------------------------------
+# 3. Inject Grapefruit package lists and configuration
+# ------------------------------------------------------------
 echo
-echo "Kernel priorities that must be present in the resulting image:"
-echo "  - cgroups v2 + full controllers"
-echo "  - All major namespaces"
-echo "  - seccomp + Landlock"
-echo "  - io_uring"
-echo "  - eBPF + BTF"
-echo "  - IOMMU support"
-echo "  - Modern scheduler + NUMA awareness where applicable"
+echo "==> Installing Grapefruit package lists and policies"
+
+mkdir -p config/package-lists
+cp -v "$REPO_ROOT"/iso/config/package-lists/*.list.chroot config/package-lists/ 2>/dev/null || true
+
+# Sysctl hardening
+mkdir -p config/includes.chroot/etc/sysctl.d
+cp -v "$REPO_ROOT"/configs/sysctl.d/99-grapefruit.conf config/includes.chroot/etc/sysctl.d/ 2>/dev/null || true
+
+# Placeholders for seccomp / landlock documentation inside the image
+mkdir -p config/includes.chroot/usr/share/doc/grapefruit
+cp -v "$REPO_ROOT"/configs/seccomp/README.md config/includes.chroot/usr/share/doc/grapefruit/seccomp-README.md 2>/dev/null || true
+cp -v "$REPO_ROOT"/configs/landlock/README.md config/includes.chroot/usr/share/doc/grapefruit/landlock-README.md 2>/dev/null || true
+
+# Kernel fragment (for reference / later custom kernel builds)
+mkdir -p config/includes.chroot/usr/share/grapefruit
+cp -v "$REPO_ROOT"/configs/grapefruit-kernel.fragment config/includes.chroot/usr/share/grapefruit/ 2>/dev/null || true
+
+echo "Configuration files copied."
+
+# ------------------------------------------------------------
+# 4. Summary of kernel priorities that the final image should satisfy
+# ------------------------------------------------------------
 echo
-echo "Next concrete steps for contributors:"
-echo "  - Populate configs/ with a kernel config fragment"
-echo "  - Create live-build package lists under iso/ or config/"
-echo "  - Turn this script into a real, idempotent builder"
+echo "==> Kernel feature checklist (must be true of the running kernel in the ISO)"
+echo "    [ ] cgroups v2 + controllers"
+echo "    [ ] namespaces (pid, mount, user, net, uts, ipc, cgroup, ...)"
+echo "    [ ] seccomp + Landlock"
+echo "    [ ] io_uring"
+echo "    [ ] eBPF + BTF"
+echo "    [ ] IOMMU support"
+echo "    [ ] Modern scheduler options"
 echo
-echo "Exiting without building (scaffold only)."
-exit 0
+echo "The stock distribution kernel already provides most of these."
+echo "For a fully custom kernel, merge configs/grapefruit-kernel.fragment"
+echo "and rebuild before generating the ISO."
+
+# ------------------------------------------------------------
+# 5. Build or instruct
+# ------------------------------------------------------------
+echo
+if [[ "$AUTO" -eq 1 ]]; then
+  echo "==> Starting live-build (this will take a long time and requires root)"
+  echo "    Working directory: $BUILD_DIR"
+  sudo lb build
+  echo
+  echo "Build finished. Look for a *.iso in $BUILD_DIR"
+  echo "Generate checksums with:"
+  echo "  sha256sum *.iso > SHA256SUMS"
+else
+  echo "==> Dry run complete. To build for real, re-run with --auto:"
+  echo "    $0 --auto"
+  echo
+  echo "Or enter the build directory and run manually:"
+  echo "    cd $BUILD_DIR"
+  echo "    sudo lb build"
+  echo
+  echo "See docs/iso-build.md for the full design rationale."
+fi
