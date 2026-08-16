@@ -6,13 +6,20 @@ Seccomp-BPF is one of the primary tools we use to reduce the system-call attack 
 
 - Default system-wide policy should remain relatively permissive so that a normal desktop or server session works without friction.
 - Individual services, agents, containers, and high-risk processes should be started under tighter profiles.
-- Profiles are expressed as JSON (libseccomp / podman / docker / systemd style) or as BPF programs where more control is needed.
+- Profiles are expressed as JSON (libseccomp / podman / docker / systemd / OCI style).
 
-## Recommended Starting Points
+## Concrete Profiles in this Directory
 
-### 1. Systemd service example (tight)
+| File | Purpose |
+|------|---------|
+| `agent-base.json` | Starting point for sandboxed agents and services. Allows a broad but still limited set of syscalls needed by most modern userspace programs (including io_uring). |
+| `untrusted-code.json` | Very restrictive profile intended for evaluating untrusted binaries or running high-risk code. Only a minimal set of syscalls is permitted. |
 
-Many services can use:
+Both profiles default to returning an error (`SCMP_ACT_ERRNO`) for anything not explicitly allowed.
+
+## Recommended Usage Patterns
+
+### Systemd service
 
 ```ini
 [Service]
@@ -21,28 +28,22 @@ SystemCallErrorNumber=EPERM
 NoNewPrivileges=yes
 ```
 
-or a more restrictive filter list once the exact needs of the service are known.
+or point at a custom filter once the exact needs of the service are known.
 
-### 2. Container / agent runtimes
+### Containers / agents
 
-Prefer runtimes that apply a strong default seccomp profile (Docker/Podman default, or a custom one based on the OCI runtime-spec default + further removals).
+Prefer runtimes that can load an OCI-style seccomp profile. The JSON files here are intended to be usable as a starting point for Podman, Docker, or custom agent runners.
 
-### 3. Development / research agents
+### Development workflow
 
-Start from a known-good profile and only add syscalls that are proven necessary. Log violations (`SCMP_ACT_LOG`) during development, then switch to `SCMP_ACT_ERRNO` or `SCMP_ACT_KILL`.
-
-## Files in this directory
-
-Future concrete profiles will live here, for example:
-
-- `agent-base.json` — starting point for sandboxed agents
-- `network-service.json` — tighter profile for network-facing daemons
-- `untrusted-code.json` — very restrictive profile for evaluating untrusted binaries
-
-Until those are populated, use the distribution defaults plus the guidance above, and prefer Landlock + namespaces + cgroups as additional layers.
+1. Start with `agent-base.json` or even broader logging (`SCMP_ACT_LOG`).
+2. Run the workload and collect violations.
+3. Tighten to the minimum necessary set, then switch to `SCMP_ACT_ERRNO` or `SCMP_ACT_KILL`.
 
 ## Related Mechanisms
 
-- **Landlock** — path-based restrictions (see `configs/landlock/`)
+- **Landlock** — path-based restrictions (`configs/landlock/`)
 - **Namespaces + cgroups v2** — the broader isolation envelope
 - **sysctl settings** — `configs/sysctl.d/99-grapefruit.conf`
+
+No single mechanism is sufficient; the combination produces strong, practical isolation.
