@@ -1,0 +1,28 @@
+---
+componentName:  grapefruit
+
+strings:
+    productName:         Grapefruit OS
+    shortProductName:    Grapefruit
+    version:             0.1.0-dev
+    shortVersion:        0.1
+    versionedName:       Grapefruit OS 0.1.0-dev
+    shortVersionedName:  Grapefruit 0.1
+    bootloaderEntryName: Grapefruit
+    productUrl:          https://github.com/djlacavera21/Grapefruit-OS
+    supportUrl:          https://github.com/djlacavera21/Grapefruit-OS/issues
+    releaseNotesUrl:     https://github.com/djlacavera21/Grapefruit-OS
+
+images:
+    # productLogo:         "logo.png"
+    # productIcon:         "logo.png"
+    # productWelcome:      "welcome.png"
+
+style:
+   sidebarBackground:    "#1a1a1a"
+   sidebarText:          "#e0e0e0"
+   sidebarTextHighlight: "#f0a000"
+
+slideshow:               "show.qml"
+
+slideshowAPI: 2
