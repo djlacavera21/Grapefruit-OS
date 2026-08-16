@@ -1,0 +1,60 @@
+#!/bin/sh
+# Grapefruit OS — live/chroot hook
+# Runs inside the chroot during image build to set sensible defaults.
+
+set -e
+
+echo "Grapefruit: applying default policies and settings..."
+
+# Ensure sysctl policy is loaded on boot
+if [ -f /etc/sysctl.d/99-grapefruit.conf ]; then
+    echo "Sysctl policy present."
+fi
+
+# Create a simple motd / issue
+cat > /etc/motd << 'EOF'
+Grapefruit OS
+-------------
+Isolation-first Linux. Strong defaults. Sovereign by design.
+
+Documentation: /usr/share/doc/grapefruit/
+Kernel fragment reference: /usr/share/grapefruit/
+EOF
+
+cat > /etc/issue << 'EOF'
+Grapefruit OS \n \l
+EOF
+
+cat > /etc/issue.net << 'EOF'
+Grapefruit OS
+EOF
+
+# Prefer the unified cgroup hierarchy (already default on modern systemd,
+# but we make the intent explicit)
+mkdir -p /etc/systemd/system
+# (cgroup v2 is default on current Ubuntu/Debian kernels + systemd)
+
+# Enable useful services by default in the live image
+systemctl enable NetworkManager.service || true
+systemctl enable systemd-timesyncd.service || true
+
+# Create a documentation pointer
+mkdir -p /usr/share/doc/grapefruit
+cat > /usr/share/doc/grapefruit/README << 'EOF'
+Grapefruit OS
+=============
+
+This system is built with the following priorities:
+
+1. Strong, cheap isolation (namespaces, cgroups v2, seccomp, Landlock)
+2. Predictable performance
+3. Manageable trusted computing base
+4. Clean hardware enablement and modern I/O
+
+See also:
+- /usr/share/doc/grapefruit/seccomp-README.md
+- /usr/share/doc/grapefruit/landlock-README.md
+- /usr/share/grapefruit/grapefruit-kernel.fragment
+EOF
+
+echo "Grapefruit: defaults applied."
