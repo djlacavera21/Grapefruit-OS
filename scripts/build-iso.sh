@@ -96,28 +96,44 @@ if [[ ! -d config ]]; then
 fi
 
 # ------------------------------------------------------------
-# 3. Inject Grapefruit package lists and configuration
+# 3. Inject Grapefruit package lists, hooks, policies, and branding
 # ------------------------------------------------------------
 echo
-echo "==> Installing Grapefruit package lists and policies"
+echo "==> Installing Grapefruit package lists, hooks, and policies"
 
+# Package lists
 mkdir -p config/package-lists
 cp -v "$REPO_ROOT"/iso/config/package-lists/*.list.chroot config/package-lists/ 2>/dev/null || true
+
+# Live / chroot hooks
+mkdir -p config/hooks/live
+cp -v "$REPO_ROOT"/iso/config/hooks/live/*.chroot config/hooks/live/ 2>/dev/null || true
+chmod +x config/hooks/live/*.chroot 2>/dev/null || true
 
 # Sysctl hardening
 mkdir -p config/includes.chroot/etc/sysctl.d
 cp -v "$REPO_ROOT"/configs/sysctl.d/99-grapefruit.conf config/includes.chroot/etc/sysctl.d/ 2>/dev/null || true
 
-# Placeholders for seccomp / landlock documentation inside the image
+# Seccomp profiles + documentation
 mkdir -p config/includes.chroot/usr/share/doc/grapefruit
+mkdir -p config/includes.chroot/usr/share/grapefruit/seccomp
 cp -v "$REPO_ROOT"/configs/seccomp/README.md config/includes.chroot/usr/share/doc/grapefruit/seccomp-README.md 2>/dev/null || true
+cp -v "$REPO_ROOT"/configs/seccomp/*.json config/includes.chroot/usr/share/grapefruit/seccomp/ 2>/dev/null || true
+
+# Landlock documentation
 cp -v "$REPO_ROOT"/configs/landlock/README.md config/includes.chroot/usr/share/doc/grapefruit/landlock-README.md 2>/dev/null || true
 
-# Kernel fragment (for reference / later custom kernel builds)
+# Kernel fragment
 mkdir -p config/includes.chroot/usr/share/grapefruit
 cp -v "$REPO_ROOT"/configs/grapefruit-kernel.fragment config/includes.chroot/usr/share/grapefruit/ 2>/dev/null || true
 
-echo "Configuration files copied."
+# Calamares settings and branding (scaffold)
+mkdir -p config/includes.chroot/etc/calamares/branding/grapefruit
+cp -v "$REPO_ROOT"/iso/config/includes.chroot/etc/calamares/settings.conf config/includes.chroot/etc/calamares/ 2>/dev/null || true
+cp -v "$REPO_ROOT"/iso/config/includes.chroot/etc/calamares/branding/grapefruit/branding.desc \
+      config/includes.chroot/etc/calamares/branding/grapefruit/ 2>/dev/null || true
+
+echo "Configuration, hooks, and branding files copied."
 
 # ------------------------------------------------------------
 # 4. Summary of kernel priorities that the final image should satisfy
