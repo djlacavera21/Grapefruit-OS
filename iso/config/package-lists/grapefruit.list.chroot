@@ -1,0 +1,65 @@
+# Grapefruit OS — core package list (chroot)
+# These packages form the baseline system that appears in both the live
+# environment and the installed system.
+
+# Base system & essentials
+linux-image-generic
+linux-headers-generic
+live-boot
+live-config
+live-config-systemd
+systemd
+systemd-sysv
+dbus
+sudo
+ca-certificates
+openssl
+
+# Networking
+network-manager
+iproute2
+iputils-ping
+curl
+wget
+rscync
+openssh-client
+
+# Filesystems & storage
+e2fsprogs
+btrfs-progs
+xfsprogs
+dosfstools
+ntfs-3g
+lvm2
+cryptsetup
+
+# Firmware & hardware support
+linux-firmware
+intel-microcode
+amd64-microcode
+
+# Isolation & modern kernel features support
+libseccomp2
+libbpf1
+bpfcc-tools
+linux-tools-generic
+
+# Useful utilities
+vim
+nano
+htop
+tmux
+git
+rsync
+zip
+unzip
+pq
+strace
+lsof
+
+# Optional but commonly wanted for a usable live system
+grub-efi-amd64
+grub-pc
+efimager
+squashfs-tools
+xorriso
