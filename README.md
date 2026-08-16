@@ -1,99 +1,109 @@
 # Grapefruit OS
 
-**Grapefruit OS** — A modern, modular operating system focused on sovereignty, performance, and clean design.
+**Grapefruit OS** — A modern, modular Linux-based operating system focused on sovereignty, strong isolation, predictable performance, and clean design.
 
-## Overview
+Grapefruit OS currently follows a pragmatic foundation: a carefully configured and hardened **Linux kernel** that enables the isolation, scheduling, I/O, and security features we consider essential. This lets us ship a usable system and ISO quickly while keeping a clear path open for more radical kernel designs later.
 
-Grapefruit OS is designed as a lightweight yet powerful system for developers, researchers, and empire builders who want full control over their computing environment. It emphasizes privacy, modularity, and straightforward deployment.
+## Design Priorities (Kernel Level)
+
+The kernel (and therefore the ISO and installed system) is shaped by these goals:
+
+1. **Strong, cheap isolation** — namespaces, cgroups v2, seccomp, Landlock
+2. **Predictable performance** under mixed and multi-agent workloads
+3. **A manageable trusted computing base** even while using Linux
+4. **Clean hardware enablement** and modern I/O (io_uring, eBPF, IOMMU)
+
+Full discussion: **[docs/kernel-features.md](docs/kernel-features.md)**
+
+## Current Status
+
+- Repository scaffolding and documentation are in place
+- Recommended kernel configuration fragment exists (`configs/grapefruit-kernel.fragment`)
+- ISO build process is documented and scripted at the conceptual level
+- Live ISO and full installer are the next major implementation targets
 
 ## Installation
 
-### Prerequisites
+### Method 1: Live ISO (Recommended)
 
-- A modern x86_64 or aarch64 machine (or virtual machine)
-- At least 4 GB RAM (8 GB+ recommended)
-- 20 GB free disk space
-- Internet connection for downloading packages (optional for offline ISO installs)
-
-### Method 1: Live ISO (Recommended for most users)
+Once releases are published:
 
 1. Download the latest Grapefruit OS ISO from the [Releases](https://github.com/djlacavera21/Grapefruit-OS/releases) page.
-2. Verify the checksum (SHA256) provided with the release.
-3. Write the ISO to a USB drive using tools such as:
-   - **Linux**: `dd if=Grapefruit-OS.iso of=/dev/sdX bs=4M status=progress && sync`
-   - **Windows**: Rufus or balenaEtcher
-   - **macOS**: balenaEtcher or `dd`
-4. Boot from the USB drive.
-5. Select **Install Grapefruit OS** from the live environment menu.
-6. Follow the graphical (or text) installer:
-   - Choose language, keyboard, and timezone
-   - Partition the disk (guided or manual)
-   - Create a user account
-   - Confirm and begin installation
-7. Reboot into your new Grapefruit OS system when finished.
+2. Verify the SHA256 checksum.
+3. Write to USB (`dd`, Rufus, balenaEtcher, etc.).
+4. Boot and choose **Install Grapefruit OS**.
 
-### Method 2: One-Command Install Script (from an existing Linux system)
+The ISO is built so that the live environment already runs the same isolation-oriented kernel configuration that the installed system will use. See **[docs/iso-build.md](docs/iso-build.md)** for how the image is produced.
+
+### Method 2: One-Command Script (Future)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/djlacavera21/Grapefruit-OS/main/scripts/install.sh | bash
 ```
 
-This script will:
-- Detect your hardware
-- Download the necessary base system packages
-- Set up the Grapefruit package repositories
-- Install the core system and optional desktop environment
-- Configure bootloader and basic services
+Currently a scaffold; the real installer will land alongside the first ISO.
 
-**Note**: Run this only on a system you are prepared to modify or in a dedicated partition/VM.
-
-### Method 3: Docker / Container Image (for testing & development)
-
-```bash
-docker pull ghcr.io/djlacavera21/grapefruit-os:latest
-docker run -it --name grapefruit ghcr.io/djlacavera21/grapefruit-os:latest
-```
-
-Or using Docker Compose (recommended):
+### Method 3: Docker / Development Container
 
 ```bash
 git clone https://github.com/djlacavera21/Grapefruit-OS.git
 cd Grapefruit-OS
-docker compose up -d
+# docker compose support coming
 ```
 
-### Method 4: Build from Source
+### Method 4: Build from Source / Custom ISO
 
 ```bash
 git clone https://github.com/djlacavera21/Grapefruit-OS.git
 cd Grapefruit-OS
-./scripts/build.sh
+./scripts/build-iso.sh          # currently documents the process
 ```
 
-This will produce a custom ISO or root filesystem that can be installed using the methods above.
+Detailed instructions: **[docs/iso-build.md](docs/iso-build.md)**
 
-## Post-Installation
+## Repository Layout
 
-After first boot:
+```
+Grapefruit-OS/
+├── README.md
+├── docs/
+│   ├── kernel-features.md     # Full kernel design discussion
+│   └── iso-build.md           # How the bootable ISO is produced
+├── configs/
+│   └── grapefruit-kernel.fragment   # Recommended Linux kernel options
+└── scripts/
+    ├── build-iso.sh           # ISO build wrapper (scaffold)
+    └── install.sh             # One-command installer (scaffold)
+```
 
-1. Update the system:
-   ```bash
-   sudo grapefruit-update
-   ```
-2. Install additional packages as needed:
-   ```bash
-   sudo grapefruit-install <package>
-   ```
-3. (Optional) Enable the recommended desktop environment or window manager.
+## Kernel Configuration Highlights
+
+The fragment in `configs/grapefruit-kernel.fragment` turns on (among other things):
+
+- Full **cgroups v2** + controllers
+- All major **namespaces**
+- **seccomp** + **Landlock**
+- **io_uring**
+- **eBPF** + BTF
+- **IOMMU** support
+- Modern scheduler and NUMA options
+
+These choices directly implement the priorities listed above.
+
+## Long-Term Direction
+
+Short term we ship a solid, hardened Linux-based system.  
+Long term the same isolation primitives (namespaces, cgroups, careful capability use, modern IPC) give us a clean migration path if we ever move critical components onto a smaller microkernel or hybrid core. That decision is deliberately left open.
 
 ## Documentation
 
-Further documentation, architecture notes, and contribution guidelines will be added as the project develops.
+- [Kernel Features](docs/kernel-features.md) — the design rationale
+- [ISO Build Process](docs/iso-build.md) — turning the design into a bootable image
 
 ## License
 
-To be determined (likely a permissive or strong copyleft license).
+To be determined.
 
 ---
 
-*Grapefruit OS is under active development. Contributions, feedback, and issue reports are welcome.*
+*Grapefruit OS exists to turn deliberate kernel-level decisions about isolation, performance, and sovereignty into a concrete, usable system.*
