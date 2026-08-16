@@ -21,7 +21,7 @@ iproute2
 iputils-ping
 curl
 wget
-rscync
+rsync
 openssh-client
 
 # Filesystems & storage
@@ -53,13 +53,13 @@ git
 rsync
 zip
 unzip
-pq
+jq
 strace
 lsof
 
-# Optional but commonly wanted for a usable live system
+# Bootloader support
 grub-efi-amd64
 grub-pc
-efimager
+efibootmgr
 squashfs-tools
 xorriso
