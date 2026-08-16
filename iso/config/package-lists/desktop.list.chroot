@@ -1,0 +1,32 @@
+# Optional desktop / graphical packages for Grapefruit OS
+# Include this list when building a graphical live image.
+# For a minimal server/agent image, omit it.
+
+# Display & input
+xorg
+xserver-xorg
+xserver-xorg-input-all
+xserver-xorg-video-all
+mesa-utils
+
+# Lightweight graphical session options (choose later)
+# sway
+# labwc
+# waybar
+# wofi
+
+# Fallback / common tools
+lightdm
+lightdm-gtk-greeter
+
+# Fonts & basic theming
+fonts-dejavu
+fonts-liberation
+fonts-noto-core
+
+# Useful graphical utilities
+firefox
+# or a more privacy-oriented browser later
+
+# Note: The final desktop direction (tiling Wayland compositor vs
+# traditional DE) is still open. This list is intentionally modest.
