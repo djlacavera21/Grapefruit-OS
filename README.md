@@ -23,10 +23,12 @@ Architecture decision: **[docs/adr/0001-linux-kernel-foundation.md](docs/adr/000
 - [x] Calamares settings and branding scaffold
 - [x] Expanded, usable `scripts/build-iso.sh` that injects all of the above
 - [x] Roadmap and first Architecture Decision Record
+- [x] Grapefruit OS v1.0 Revision A implementation review and engineering expansion backlog
 - [ ] First published bootable hybrid ISO
 - [ ] Complete installer experience
+- [ ] Implementation-ready Executive, agent protocol, memory, semantic filesystem, plugin, and enterprise contracts
 
-See **[docs/roadmap.md](docs/roadmap.md)** for the full phased plan.
+See **[docs/roadmap.md](docs/roadmap.md)** for the full phased plan and **[Revision A Implementation Review](docs/grapefruit-os-v1.0-revision-a-implementation-review.md)** for the specification-to-implementation backlog.
 
 ## Building the ISO
 
@@ -53,6 +55,7 @@ Details: **[docs/iso-build.md](docs/iso-build.md)**
 Grapefruit-OS/
 ├── README.md
 ├── docs/
+│   ├── grapefruit-os-v1.0-revision-a-implementation-review.md
 │   ├── kernel-features.md
 │   ├── iso-build.md
 │   ├── roadmap.md
@@ -83,6 +86,12 @@ Grapefruit-OS/
 - **Landlock** guidance supports unprivileged path-based sandboxing.
 - **Calamares** branding and settings are pre-seeded for a future graphical installer.
 
+## Technical Specification Direction
+
+The Grapefruit OS v1.0 Revision A architecture defines the long-term AI-first automation platform: GPT Executive planning and verification, supervised agents, typed communication, Linux-enforced privilege, semantic storage and memory, model routing, SDKs, plugins, enterprise deployment, Zero-Trust controls, conformance testing, and the roadmap through Version 5.0.
+
+The **[Revision A Implementation Review](docs/grapefruit-os-v1.0-revision-a-implementation-review.md)** identifies the concrete work required to turn that architecture into implementation-ready subsystem contracts. P0 work centers on the Executive scheduler, agent runtime/protocol, and Linux enforcement boundary; P1 adds semantic storage, memory, model routing, desktop workflows, plugins/SDKs, and Zero-Trust controls; P2 completes enterprise/federated deployment and reproducible conformance/performance engineering.
+
 ## Long-Term Direction
 
 Short term we ship a solid, hardened Linux-based system.  
@@ -96,6 +105,7 @@ Long term the same isolation primitives give us a clean migration path if we eve
 | [ADR 0001](docs/adr/0001-linux-kernel-foundation.md) | Why we start with Linux |
 | [ISO Build](docs/iso-build.md) | How the bootable image is produced |
 | [Roadmap](docs/roadmap.md) | Phased plan |
+| [Revision A Implementation Review](docs/grapefruit-os-v1.0-revision-a-implementation-review.md) | Implementation gaps, priorities, acceptance targets, and recommended engineering sequence |
 
 ## License
 
