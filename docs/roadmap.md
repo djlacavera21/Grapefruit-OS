@@ -7,23 +7,26 @@ This roadmap reflects the current pragmatic direction: a hardened, isolation-fir
 - [x] Repository structure and core documentation
 - [x] Kernel feature philosophy and recommended config fragment
 - [x] ISO build design and concrete automation script
-- [x] Real package lists (core + optional desktop)
+- [x] Real package lists (core, optional desktop, security/isolation userland)
 - [x] Default sysctl hardening
 - [x] Seccomp guidance + concrete profiles (`agent-base.json`, `untrusted-code.json`)
 - [x] Landlock guidance
-- [x] Live-build hook for defaults and branding messages
-- [x] Calamares settings + branding descriptor scaffold
-- [x] Architecture Decision Record for the Linux foundation choice
-- [x] Initial roadmap
-- [ ] First bootable hybrid ISO (manual or semi-automated build on a real host)
+- [x] nftables default-deny-incoming policy + NetworkManager defaults
+- [x] sshd hardening fragment (server remains disabled by default)
+- [x] Live-build hooks for defaults, branding, and network policy
+- [x] Calamares settings, branding, welcome, and users modules
+- [x] First-boot guide and verification checklist
+- [x] Plymouth / splash direction recorded (theme not yet implemented)
+- [x] Architecture Decision Records (kernel foundation, network defaults)
+- [x] MIT license and contributor guidelines
+- [ ] First bootable hybrid ISO (run `scripts/build-iso.sh --auto` on a real host)
 - [ ] Polished live session experience
 
 ## Phase 1 — Usable Live System & Installer (Next)
 
 - Fully tested `scripts/build-iso.sh --auto` producing a signed, checksummed hybrid ISO
-- Working live environment with the Grapefruit kernel configuration and policies active
-- Calamares (or alternative) installer that preserves isolation defaults and branding
-- One-command `install.sh` refinements or clear documentation of preferred paths
+- Working live environment with Grapefruit policies active
+- Calamares installer that preserves isolation defaults and branding
 - Decision on default session (minimal Wayland compositor vs fuller desktop)
 - Persistent update story (repository or image-based)
 
@@ -34,7 +37,6 @@ This roadmap reflects the current pragmatic direction: a hardened, isolation-fir
 - Optional AppArmor/SELinux profiles with clear documentation
 - Secure boot / measured boot exploration
 - First-class examples for rootless containers and sandboxed agents
-- Documentation and recipes for high-isolation workloads
 
 ## Phase 3 — Developer & Power-User Experience
 
@@ -57,7 +59,3 @@ This roadmap reflects the current pragmatic direction: a hardened, isolation-fir
 2. Predictable performance under mixed workloads matters.
 3. Keep the trusted computing base as understandable as practical.
 4. Prefer mechanisms that leave future architectural options open.
-
----
-
-*This roadmap is a living document. Major changes in direction will be recorded as new Architecture Decision Records.*

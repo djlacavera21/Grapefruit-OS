@@ -12,17 +12,17 @@ Grapefruit OS currently follows a pragmatic foundation: a carefully configured a
 4. **Clean hardware enablement** and modern I/O (io_uring, eBPF, IOMMU)
 
 Full discussion: **[docs/kernel-features.md](docs/kernel-features.md)**  
-Architecture decision: **[docs/adr/0001-linux-kernel-foundation.md](docs/adr/0001-linux-kernel-foundation.md)**
+Architecture decisions: [ADR 0001](docs/adr/0001-linux-kernel-foundation.md) · [ADR 0002](docs/adr/0002-network-and-firewall-defaults.md)
 
 ## Current Status
 
 - [x] Kernel feature philosophy and recommended config fragment
 - [x] Concrete live-build package lists + hooks
-- [x] Default sysctl hardening
-- [x] Concrete seccomp profiles (`agent-base`, `untrusted-code`) + Landlock guidance
-- [x] Calamares settings and branding scaffold
-- [x] Expanded, usable `scripts/build-iso.sh` that injects all of the above
-- [x] Roadmap and first Architecture Decision Record
+- [x] sysctl, nftables, NetworkManager, and sshd policy files
+- [x] Concrete seccomp profiles + Landlock guidance
+- [x] Calamares settings, branding, welcome, and users modules
+- [x] First-boot verification guide
+- [x] `scripts/build-iso.sh` injects the full policy set into the live-build tree
 - [ ] First published bootable hybrid ISO
 - [ ] Complete installer experience
 
@@ -37,69 +37,30 @@ cd Grapefruit-OS
 ./scripts/build-iso.sh --auto   # attempts a full live-build (requires root + dependencies)
 ```
 
-The script checks dependencies, creates a live-build tree, injects package lists, hooks, sysctl policy, seccomp profiles, Landlock docs, kernel fragment, and Calamares branding, then can run `lb build`.
+Details: **[docs/iso-build.md](docs/iso-build.md)**  
+After the image boots: **[docs/first-boot.md](docs/first-boot.md)**
 
-Details: **[docs/iso-build.md](docs/iso-build.md)**
+## Network Defaults
 
-## Installation (once an ISO exists)
-
-1. Download the ISO from Releases and verify the SHA256 checksum.
-2. Write it to USB (`dd`, Rufus, balenaEtcher, etc.).
-3. Boot and install (Calamares branding is already scaffolded).
+- Outgoing connectivity via NetworkManager
+- Incoming traffic denied by nftables unless established/related
+- SSH server is **not** enabled by default
 
 ## Repository Layout
 
 ```
 Grapefruit-OS/
 ├── README.md
-├── docs/
-│   ├── kernel-features.md
-│   ├── iso-build.md
-│   ├── roadmap.md
-│   └── adr/0001-linux-kernel-foundation.md
-├── configs/
-│   ├── grapefruit-kernel.fragment
-│   ├── sysctl.d/99-grapefruit.conf
-│   ├── seccomp/
-│   │   ├── README.md
-│   │   ├── agent-base.json
-│   │   └── untrusted-code.json
-│   └── landlock/README.md
-├── iso/
-│   └── config/
-│       ├── package-lists/
-│       ├── hooks/live/
-│       └── includes.chroot/etc/calamares/...
-└── scripts/
-    ├── build-iso.sh
-    └── install.sh
+├── LICENSE
+├── docs/           # design, ADRs, first-boot, roadmap, contributing
+├── configs/        # kernel fragment, sysctl, seccomp, nftables, ssh, NM
+├── iso/            # live-build package lists, hooks, Calamares includes
+└── scripts/        # build-iso.sh, install.sh
 ```
-
-## Kernel & Policy Highlights
-
-- **Kernel fragment** enables cgroups v2, namespaces, seccomp, Landlock, io_uring, eBPF, IOMMU, and modern scheduler options.
-- **sysctl** policy hardens common attack surfaces.
-- **seccomp** profiles provide ready-to-use baselines for agents and untrusted code.
-- **Landlock** guidance supports unprivileged path-based sandboxing.
-- **Calamares** branding and settings are pre-seeded for a future graphical installer.
-
-## Long-Term Direction
-
-Short term we ship a solid, hardened Linux-based system.  
-Long term the same isolation primitives give us a clean migration path if we ever move critical components onto a smaller microkernel or hybrid core. That option is deliberately kept open (see the ADR).
-
-## Documentation Index
-
-| Document | Purpose |
-|----------|---------|
-| [Kernel Features](docs/kernel-features.md) | Design rationale for the kernel |
-| [ADR 0001](docs/adr/0001-linux-kernel-foundation.md) | Why we start with Linux |
-| [ISO Build](docs/iso-build.md) | How the bootable image is produced |
-| [Roadmap](docs/roadmap.md) | Phased plan |
 
 ## License
 
-To be determined.
+MIT — see [LICENSE](LICENSE).
 
 ---
 

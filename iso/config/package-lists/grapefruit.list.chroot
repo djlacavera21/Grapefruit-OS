@@ -50,7 +50,6 @@ nano
 htop
 tmux
 git
-rsync
 zip
 unzip
 jq

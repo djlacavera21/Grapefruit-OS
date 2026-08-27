@@ -101,39 +101,47 @@ fi
 echo
 echo "==> Installing Grapefruit package lists, hooks, and policies"
 
-# Package lists
 mkdir -p config/package-lists
 cp -v "$REPO_ROOT"/iso/config/package-lists/*.list.chroot config/package-lists/ 2>/dev/null || true
 
-# Live / chroot hooks
 mkdir -p config/hooks/live
 cp -v "$REPO_ROOT"/iso/config/hooks/live/*.chroot config/hooks/live/ 2>/dev/null || true
 chmod +x config/hooks/live/*.chroot 2>/dev/null || true
 
-# Sysctl hardening
 mkdir -p config/includes.chroot/etc/sysctl.d
 cp -v "$REPO_ROOT"/configs/sysctl.d/99-grapefruit.conf config/includes.chroot/etc/sysctl.d/ 2>/dev/null || true
 
-# Seccomp profiles + documentation
 mkdir -p config/includes.chroot/usr/share/doc/grapefruit
 mkdir -p config/includes.chroot/usr/share/grapefruit/seccomp
+mkdir -p config/includes.chroot/usr/share/grapefruit/nftables
 cp -v "$REPO_ROOT"/configs/seccomp/README.md config/includes.chroot/usr/share/doc/grapefruit/seccomp-README.md 2>/dev/null || true
 cp -v "$REPO_ROOT"/configs/seccomp/*.json config/includes.chroot/usr/share/grapefruit/seccomp/ 2>/dev/null || true
-
-# Landlock documentation
 cp -v "$REPO_ROOT"/configs/landlock/README.md config/includes.chroot/usr/share/doc/grapefruit/landlock-README.md 2>/dev/null || true
+cp -v "$REPO_ROOT"/docs/first-boot.md config/includes.chroot/usr/share/doc/grapefruit/first-boot.md 2>/dev/null || true
+cp -v "$REPO_ROOT"/iso/config/includes.chroot/usr/share/doc/grapefruit/FIRST-BOOT.txt \
+      config/includes.chroot/usr/share/doc/grapefruit/ 2>/dev/null || true
 
-# Kernel fragment
 mkdir -p config/includes.chroot/usr/share/grapefruit
 cp -v "$REPO_ROOT"/configs/grapefruit-kernel.fragment config/includes.chroot/usr/share/grapefruit/ 2>/dev/null || true
+cp -v "$REPO_ROOT"/configs/nftables/grapefruit.nft config/includes.chroot/usr/share/grapefruit/nftables/ 2>/dev/null || true
+cp -v "$REPO_ROOT"/configs/nftables/grapefruit.nft config/includes.chroot/etc/nftables.conf 2>/dev/null || true
 
-# Calamares settings and branding (scaffold)
+mkdir -p config/includes.chroot/etc/ssh/sshd_config.d
+mkdir -p config/includes.chroot/etc/NetworkManager/conf.d
+cp -v "$REPO_ROOT"/configs/ssh/sshd_config.d/10-grapefruit.conf \
+      config/includes.chroot/etc/ssh/sshd_config.d/ 2>/dev/null || true
+cp -v "$REPO_ROOT"/configs/network/NetworkManager.conf.d/00-grapefruit.conf \
+      config/includes.chroot/etc/NetworkManager/conf.d/ 2>/dev/null || true
+
 mkdir -p config/includes.chroot/etc/calamares/branding/grapefruit
+mkdir -p config/includes.chroot/etc/calamares/modules
 cp -v "$REPO_ROOT"/iso/config/includes.chroot/etc/calamares/settings.conf config/includes.chroot/etc/calamares/ 2>/dev/null || true
 cp -v "$REPO_ROOT"/iso/config/includes.chroot/etc/calamares/branding/grapefruit/branding.desc \
       config/includes.chroot/etc/calamares/branding/grapefruit/ 2>/dev/null || true
+cp -v "$REPO_ROOT"/iso/config/includes.chroot/etc/calamares/modules/*.conf \
+      config/includes.chroot/etc/calamares/modules/ 2>/dev/null || true
 
-echo "Configuration, hooks, and branding files copied."
+echo "Configuration, hooks, policies, and branding files copied."
 
 # ------------------------------------------------------------
 # 4. Summary of kernel priorities that the final image should satisfy
@@ -172,5 +180,5 @@ else
   echo "    cd $BUILD_DIR"
   echo "    sudo lb build"
   echo
-  echo "See docs/iso-build.md for the full design rationale."
+  echo "See docs/iso-build.md and docs/first-boot.md."
 fi
