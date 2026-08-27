@@ -1,0 +1,33 @@
+#!/usr/sbin/nft -f
+# Grapefruit OS default nftables policy
+# Allow outgoing and established connections. Deny unsolicited incoming.
+# See docs/adr/0002-network-and-firewall-defaults.md
+
+flush ruleset
+
+table inet grapefruit {
+    chain input {
+        type filter hook input priority filter; policy drop;
+
+        ct state established,related accept
+        ct state invalid drop
+
+        iif lo accept
+
+        # Basic diagnostics (optional; comment out for stricter hosts)
+        ip protocol icmp icmp type echo-request limit rate 5/second accept
+        ip6 nexthdr icmpv6 icmpv6 type echo-request limit rate 5/second accept
+        ip6 nexthdr icmpv6 icmpv6 type { nd-neighbor-solicit, nd-neighbor-advert, nd-router-advert } accept
+
+        # DHCP client replies on the host (NetworkManager)
+        udp sport 67 udp dport 68 accept
+    }
+
+    chain forward {
+        type filter hook forward priority filter; policy drop;
+    }
+
+    chain output {
+        type filter hook output priority filter; policy accept;
+    }
+}

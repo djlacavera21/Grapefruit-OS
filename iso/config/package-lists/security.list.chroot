@@ -1,0 +1,10 @@
+# Grapefruit OS — security and isolation userland
+# Kept separate from the core list so minimal experiments can omit extras.
+
+nftables
+bubblewrap
+uidmap
+slirp4netns
+
+# SSH client is in the core list. The server is intentionally omitted.
+# Install openssh-server only when the operator wants remote access.

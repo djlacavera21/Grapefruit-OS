@@ -1,0 +1,23 @@
+#!/bin/sh
+# Grapefruit OS — network and firewall defaults in the chroot
+
+set -e
+
+echo "Grapefruit: installing network and firewall defaults..."
+
+mkdir -p /etc/nftables.d /etc/ssh/sshd_config.d /etc/NetworkManager/conf.d
+
+if [ -f /usr/share/grapefruit/nftables/grapefruit.nft ]; then
+    cp /usr/share/grapefruit/nftables/grapefruit.nft /etc/nftables.conf
+fi
+
+# Enable nftables if the unit exists; do not fail the build if it does not.
+if command -v systemctl >/dev/null 2>&1; then
+    systemctl enable nftables.service 2>/dev/null || true
+    systemctl enable NetworkManager.service 2>/dev/null || true
+    # SSH stays off unless the operator installs and enables it.
+    systemctl disable ssh.service 2>/dev/null || true
+    systemctl disable sshd.service 2>/dev/null || true
+fi
+
+echo "Grapefruit: network defaults applied."

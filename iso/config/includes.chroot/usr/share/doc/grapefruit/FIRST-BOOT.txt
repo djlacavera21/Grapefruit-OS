@@ -1,0 +1,13 @@
+Grapefruit OS — first boot notes
+================================
+
+Full guide: see the repository docs/first-boot.md
+or /usr/share/doc/grapefruit/ after the image is built.
+
+Defaults:
+- Incoming network traffic is denied (nftables).
+- SSH server is not enabled.
+- sysctl hardening is on.
+- Isolation tools (namespaces, cgroups v2, seccomp, Landlock) are first-class.
+
+Verify with the checklist in docs/first-boot.md.
